@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Processing with OpenCV.js</title>
+  <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet"> <!-- Adding Font Awesome for icons -->
+  <style>
+    /* General Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 20px 0;
+      color: #333;
+    }
+
+    /* Navbar Styles */
+    nav {
+      background-color: #343a40;
+      padding: 10px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-size: 18px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    /* Buttons */
+    button {
+      margin: 10px 0;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Grid Layout for Filters */
+    #container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: auto auto auto;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    /* Filter Container Styling */
+    .canvas-container {
+      background-color: white;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .canvas-container h3 {
+      margin-bottom: 15px;
+      color: #555;
+    }
+
+    /* Layout for original and processed images */
+    .image-row {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      margin-bottom: 20px;
+    }
+
+    .image-container {
+      max-width: 45%;
+      display: flex;
+      justify-content: center;
+    }
+
+    img, canvas {
+      width: 90%; /* Adjust the image size slightly smaller than the container */
+      height: auto;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .upload-button {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .upload-button:hover {
+      background-color: #218838;
+    }
+
+    .upload-icon {
+      font-size: 24px;
+      color: #007BFF;
+      cursor: pointer;
+      margin-right: 10px; /* Space between icon and button */
+    }
+
+    .flex-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Responsive Design for Smaller Screens */
+    @media (max-width: 768px) {
+      .image-row {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .image-container {
+        max-width: 100%;
+        margin-bottom: 15px;
+      }
+
+      .canvas-container {
+        padding: 10px;
+        
+      }
+
+      button {
+        width: 100%;
+        padding: 12px 0;
+      }
+    }
+
+    /* Full-width container for the third row */
+    .full-width-container {
+      grid-column: span 2;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="#">Home</a>
+  </nav>
+
+  <h1>Image Processing Alogrithms</h1>
+  <p>Please, choose the subjective image with respect to the filter, I have given images in the zip file with the name of the filter.</p>
+
+  <!-- Responsive Grid Layout -->
+  <div id="container">
+    <!-- Gamma Correction -->
+    <div class="canvas-container">
+      <h3>Gamma Correction</h3>
+      <input type="file" id="uploadGamma" accept="image/*" style="display:none;" />
+      <div class="flex-row">
+        <label for="uploadGamma" class="upload-icon fas fa-upload"></label>
+        <button onclick="applyGammaCorrection(0.5)">Apply Gamma Correction</button>
+      </div>
+      <div class="image-row">
+        <div class="image-container">
+          <img id="gammaOriginalImage" alt="Original Image" />
+        </div>
+        <div class="image-container">
+          <canvas id="gammaCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Laplacian Filter -->
+    <div class="canvas-container">
+      <h3>Laplacian Filter</h3>
+      <input type="file" id="uploadLaplacian" accept="image/*" style="display:none;" />
+      <div class="flex-row">
+        <label for="uploadLaplacian" class="upload-icon fas fa-upload"></label>
+        <button onclick="applyLaplacian()">Apply Laplacian Filter</button>
+      </div>
+      <div class="image-row">
+        <div class="image-container">
+          <img id="laplacianOriginalImage" alt="Original Image" />
+        </div>
+        <div class="image-container">
+          <canvas id="laplacianCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sobel Operator -->
+    <div class="canvas-container">
+      <h3>Sobel Operator</h3>
+      <input type="file" id="uploadSobel" accept="image/*" style="display:none;" />
+      <div class="flex-row">
+        <label for="uploadSobel" class="upload-icon fas fa-upload"></label>
+        <button onclick="applySobel()">Apply Sobel Operator</button>
+      </div>
+      <div class="image-row">
+        <div class="image-container">
+          <img id="sobelOriginalImage" alt="Original Image" />
+        </div>
+        <div class="image-container">
+          <canvas id="sobelCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lowpass Filter -->
+    <div class="canvas-container">
+      <h3>Lowpass Filter</h3>
+      <input type="file" id="uploadLowpass" accept="image/*" style="display:none;" />
+      <div class="flex-row">
+        <label for="uploadLowpass" class="upload-icon fas fa-upload"></label>
+        <button onclick="applyLowpass()">Apply Lowpass Filter</button>
+      </div>
+      <div class="image-row">
+        <div class="image-container">
+          <img id="lowpassOriginalImage" alt="Original Image" />
+        </div>
+        <div class="image-container">
+          <canvas id="lowpassCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Highpass Gaussian Filter (Full-width in the third row) -->
+    <div class="canvas-container full-width-container">
+      <h3>Highpass Gaussian Filter</h3>
+      <input type="file" id="uploadHighpass" accept="image/*" style="display:none;" />
+      <div class="flex-row">
+        <label for="uploadHighpass" class="upload-icon fas fa-upload"></label>
+        <button onclick="applyHighpassGaussian()">Apply Highpass Gaussian Filter</button>
+      </div>
+      <div class="image-row">
+        <div class="image-container">
+          <img id="highpassOriginalImage" alt="Original Image" />
+        </div>
+        <div class="image-container">
+          <canvas id="highpassCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>All rights reserved &#169; <a href="#">Teerth Kolhi</a></p>
+    
+  </footer>
+  <script>
+    let src = null;
+    let currentMat = null;
+
+    // Load Image for each filter
+    function loadImageForFilter(inputId, imgId, canvasId) {
+      document.getElementById(inputId).addEventListener("change", (event) => {
+        let file = event.target.files[0];
+        let reader = new FileReader();
+        reader.onload = function (e) {
+          let imgElement = document.getElementById(imgId);
+          imgElement.src = e.target.result;
+          imgElement.onload = function () {
+            let mat = cv.imread(imgElement);
+            currentMat = mat; // Set the current image matrix to be used for filters
+            let canvas = document.getElementById(canvasId);
+            canvas.width = currentMat.cols;
+            canvas.height = currentMat.rows;
+          };
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Initialize all image inputs
+    loadImageForFilter("uploadGamma", "gammaOriginalImage", "gammaCanvas");
+    loadImageForFilter("uploadLaplacian", "laplacianOriginalImage", "laplacianCanvas");
+    loadImageForFilter("uploadSobel", "sobelOriginalImage", "sobelCanvas");
+    loadImageForFilter("uploadLowpass", "lowpassOriginalImage", "lowpassCanvas");
+    loadImageForFilter("uploadHighpass", "highpassOriginalImage", "highpassCanvas");
+
+    // Filter functions (Gamma, Laplacian, etc.)
+    function applyGammaCorrection(gamma) {
+      if (!currentMat) return alert("Please upload an image first!");
+
+      const dst = new cv.Mat();
+      const lookUpTable = new cv.Mat(1, 256, cv.CV_8U);
+      for (let i = 0; i < 256; i++) {
+        lookUpTable.data[i] = Math.pow(i / 255.0, gamma) * 255.0;
+      }
+      cv.LUT(currentMat, lookUpTable, dst);
+      cv.imshow("gammaCanvas", dst);
+
+      dst.delete();
+      lookUpTable.delete();
+    }
+
+    // Laplacian Filter
+    function applyLaplacian() {
+      if (!currentMat) return alert("Please upload an image first!");
+
+      const gray = new cv.Mat();
+      const dst = new cv.Mat();
+      cv.cvtColor(currentMat, gray, cv.COLOR_RGBA2GRAY, 0);
+      cv.Laplacian(gray, dst, cv.CV_8U, 3, 1, 0, cv.BORDER_DEFAULT);
+      cv.imshow("laplacianCanvas", dst);
+
+      gray.delete();
+      dst.delete();
+    }
+
+    // Sobel Operator
+    function applySobel() {
+      if (!currentMat) return alert("Please upload an image first!");
+
+      const gray = new cv.Mat();
+      const grad_x = new cv.Mat();
+      const grad_y = new cv.Mat();
+      const dst = new cv.Mat();
+
+      cv.cvtColor(currentMat, gray, cv.COLOR_RGBA2GRAY, 0);
+      cv.Sobel(gray, grad_x, cv.CV_16S, 1, 0);
+      cv.Sobel(gray, grad_y, cv.CV_16S, 0, 1);
+
+      cv.convertScaleAbs(grad_x, grad_x);
+      cv.convertScaleAbs(grad_y, grad_y);
+      cv.addWeighted(grad_x, 0.5, grad_y, 0.5, 0, dst);
+
+      cv.imshow("sobelCanvas", dst);
+
+      gray.delete();
+      grad_x.delete();
+      grad_y.delete();
+      dst.delete();
+    }
+
+    // Lowpass Filter
+    function applyLowpass() {
+      if (!currentMat) return alert("Please upload an image first!");
+
+      const dst = new cv.Mat();
+      const ksize = new cv.Size(15, 15);
+      cv.blur(currentMat, dst, ksize);
+      cv.imshow("lowpassCanvas", dst);
+
+      dst.delete();
+    }
+
+    // Highpass Gaussian Filter
+    function applyHighpassGaussian() {
+      if (!currentMat) return alert("Please upload an image first!");
+
+      const blurred = new cv.Mat();
+      const dst = new cv.Mat();
+
+      const ksize = new cv.Size(21, 21);
+      cv.GaussianBlur(currentMat, blurred, ksize, 0, 0, cv.BORDER_DEFAULT);
+      cv.subtract(currentMat, blurred, dst);
+      cv.imshow("highpassCanvas", dst);
+
+      blurred.delete();
+      dst.delete();
+    }
+
+  </script>
+
+</body>
+</html>
